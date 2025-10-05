@@ -29,6 +29,9 @@ if(MSVC)
   target_link_libraries(obs-screenshot-filter PRIVATE OBS::w32-pthreads)
   # Fix for FFmpeg vsnprintf issue with Visual Studio 2015+
   target_link_libraries(obs-screenshot-filter PRIVATE legacy_stdio_definitions)
+  # Add additional linker flags for FFmpeg compatibility
+  target_link_options(obs-screenshot-filter PRIVATE /FORCE:MULTIPLE)
+  target_compile_options(obs-screenshot-filter PRIVATE /D_CRT_STDIO_ISO_WIDE_SPECIFIERS)
 endif()
 
 target_link_libraries(obs-screenshot-filter PRIVATE FFmpeg::avcodec FFmpeg::avutil FFmpeg::avformat
