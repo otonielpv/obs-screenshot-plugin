@@ -27,6 +27,8 @@ if(MSVC)
   target_include_directories(obs-screenshot-filter
                              PRIVATE ${CMAKE_SOURCE_DIR}/../obs-studio/deps/w32-pthreads/)
   target_link_libraries(obs-screenshot-filter PRIVATE OBS::w32-pthreads)
+  # Fix for FFmpeg vsnprintf issue with Visual Studio 2015+
+  target_link_libraries(obs-screenshot-filter PRIVATE legacy_stdio_definitions)
 endif()
 
 target_link_libraries(obs-screenshot-filter PRIVATE FFmpeg::avcodec FFmpeg::avutil FFmpeg::avformat
