@@ -10,7 +10,7 @@ set(PLUGIN_AUTHOR "synap5e")
 
 # Add your custom source files here - header files are optional and only required for visibility
 # e.g. in Xcode or Visual Studio
-target_sources(${CMAKE_PROJECT_NAME} PRIVATE screenshot-filter.c)
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE screenshot-filter.c ffmpeg-compat.cpp)
 
 # Import libobs as main plugin dependency
 find_package(libobs REQUIRED)
@@ -27,11 +27,6 @@ if(MSVC)
   target_include_directories(obs-screenshot-filter
                              PRIVATE ${CMAKE_SOURCE_DIR}/../obs-studio/deps/w32-pthreads/)
   target_link_libraries(obs-screenshot-filter PRIVATE OBS::w32-pthreads)
-  # Fix for FFmpeg vsnprintf issue with Visual Studio 2015+
-  target_link_libraries(obs-screenshot-filter PRIVATE legacy_stdio_definitions)
-  # Add additional linker flags for FFmpeg compatibility
-  target_link_options(obs-screenshot-filter PRIVATE /FORCE:MULTIPLE)
-  target_compile_options(obs-screenshot-filter PRIVATE /D_CRT_STDIO_ISO_WIDE_SPECIFIERS)
 endif()
 
 target_link_libraries(obs-screenshot-filter PRIVATE FFmpeg::avcodec FFmpeg::avutil FFmpeg::avformat
