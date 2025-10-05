@@ -584,8 +584,10 @@ static bool write_image(const char *destination, uint8_t *image_data_ptr,
 		goto err_no_image_data;
 
 	const AVCodec *codec = avcodec_find_encoder(AV_CODEC_ID_PNG);
-	if (codec == NULL)
+	if (codec == NULL) {
+		warn("PNG encoder not found");
 		goto err_png_codec_not_found;
+	}
 
 	AVCodecContext *codec_context = avcodec_alloc_context3(codec);
 	if (codec_context == NULL)
@@ -613,38 +615,39 @@ static bool write_image(const char *destination, uint8_t *image_data_ptr,
 	if (ret < 0)
 		goto err_av_image_alloc;
 
-	av_init_packet(&pkt);
-	pkt.data = NULL;
-	pkt.size = 0;
-
 	for (int y = 0; y < height; ++y)
 		memcpy(frame->data[0] + y * width * 4,
 		       image_data_ptr + y * image_data_linesize, width * 4);
 	frame->pts = 1;
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(57, 40, 101)
-	int got_output = 0;
-	ret = avcodec_encode_video2(codec_context, &pkt, frame, &got_output);
-	if (ret == 0 && got_output) {
-		success = write_data(destination, pkt.data, pkt.size,
-				     "image/png", width, height,
-				     destination_type);
-		av_free_packet(&pkt);
-	}
-#else
+	// Use modern FFmpeg API (4.0+)
 	ret = avcodec_send_frame(codec_context, frame);
-	if (ret < 0)
+	if (ret < 0) {
+		warn("Error sending frame to encoder: %d", ret);
 		goto err_av_image_alloc;
-	ret = avcodec_receive_packet(codec_context, &pkt);
-	if (ret < 0 || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
+	}
+
+	AVPacket *pkt = av_packet_alloc();
+	if (!pkt) {
+		warn("Failed to allocate packet");
 		goto err_av_image_alloc;
-	} else {
-		success = write_data(destination, pkt.data, pkt.size,
+	}
+
+	ret = avcodec_receive_packet(codec_context, pkt);
+	if (ret == 0) {
+		success = write_data(destination, pkt->data, pkt->size,
 				     "image/png", width, height,
 				     destination_type);
-		av_packet_unref(&pkt);
+		av_packet_unref(pkt);
+	} else if (ret == AVERROR(EAGAIN)) {
+		warn("Encoder needs more frames");
+	} else if (ret == AVERROR_EOF) {
+		warn("Encoder flushed");
+	} else {
+		warn("Error receiving packet from encoder: %d", ret);
 	}
-#endif
+
+	av_packet_free(&pkt);
 
 	av_freep(frame->data);
 

@@ -2,6 +2,8 @@
 
 This [OBS Studio](https://obsproject.com) filter saves images of the attatched source. Images can be RGBA32 .png files or raw bytes. Images can be saved to a local file, local directory, PUT to a web server, or written to a named shared memory. The plugin can be triggered on a timer or on a hotkey.
 
+**Compatibility**: This plugin is compatible with **OBS Studio 32.0.1+** (and OBS 29+) with modern FFmpeg versions (4.0+).
+
 **Note for users updating from version 1.2.2 and lower**
 Version 1.3 changes the default behaviour from using a timer to using hotkeys for non-shmem screenshot filters. If you are using file/HTTP destinations on a timer, you will need to "Enable timer" on the filter.
 Named Shared Memory destinations can only use timer mode, and will continue to use the timer with no changes required.
