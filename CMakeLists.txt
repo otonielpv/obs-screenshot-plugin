@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.16...3.28)
 
+# OBS Screenshot Filter - Compatible with OBS Studio 32.0.1+
 project(obs-screenshot-filter VERSION 2.0.0)
 add_library(obs-screenshot-filter MODULE)
 
